@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -7,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Navigation } from "./Navigation";
 import { Search, Clock, Users, Star, Heart, TrendingUp } from "lucide-react";
 import { mockRecipes, cuisineTypes, dietaryFilters, timeFilters, Recipe } from "../data/recipes";
+import {Route} from "next";
 
 interface User {
   id: string;
@@ -15,34 +17,57 @@ interface User {
 }
 
 interface HomeBrowseProps {
-  user: User;
-  onProfile: () => void;
-  onCreateRecipe: () => void;
-  onRecipeClick: (recipeId: string) => void;
-  onSignOut: () => void;
+  user?: User | null;
+  onProfile?: () => void;
+  onCreateRecipe?: () => void;
+  onRecipeClick?: (recipeId: string) => void;
+  onSignOut?: () => void;
 }
 
-export function HomeBrowse({ user, onProfile, onCreateRecipe, onRecipeClick, onSignOut }: HomeBrowseProps) {
+export function HomeBrowse({
+                             user = null,
+                             onProfile,
+                             onCreateRecipe,
+                             onRecipeClick,
+                             onSignOut,
+                           }: HomeBrowseProps) {
+  const router = useRouter();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCuisine, setSelectedCuisine] = useState("All");
   const [selectedDiet, setSelectedDiet] = useState("All");
   const [selectedTime, setSelectedTime] = useState("All");
 
+  // sensible defaults if handlers aren’t provided
+  const go = (path: string) => router.push(path as Route);
+  const handleRecipeClick = (id: string) =>
+      onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
+  const handleProfile = () =>
+      onProfile ? onProfile() : go("/profile");
+  const handleCreate = () =>
+      onCreateRecipe ? onCreateRecipe() : go("/recipes/new");
+  const handleSignOut = () =>
+      onSignOut ? onSignOut() : go("/logout");
+
   const filterRecipes = (recipes: Recipe[]) => {
-    return recipes.filter(recipe => {
-      const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesCuisine = selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
-      
-      const matchesDiet = selectedDiet === "All" || recipe.dietaryTags.includes(selectedDiet);
-      
+    return recipes.filter((recipe) => {
+      const matchesSearch =
+          recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCuisine =
+          selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
+
+      const matchesDiet =
+          selectedDiet === "All" || recipe.dietaryTags.includes(selectedDiet);
+
       const totalTime = recipe.prepTime + recipe.cookTime;
-      const matchesTime = selectedTime === "All" || 
-                         (selectedTime === "Under 30 min" && totalTime < 30) ||
-                         (selectedTime === "30-60 min" && totalTime >= 30 && totalTime <= 60) ||
-                         (selectedTime === "1-2 hours" && totalTime > 60 && totalTime <= 120) ||
-                         (selectedTime === "2+ hours" && totalTime > 120);
+      const matchesTime =
+          selectedTime === "All" ||
+          (selectedTime === "Under 30 min" && totalTime < 30) ||
+          (selectedTime === "30-60 min" && totalTime >= 30 && totalTime <= 60) ||
+          (selectedTime === "1-2 hours" && totalTime > 60 && totalTime <= 120) ||
+          (selectedTime === "2+ hours" && totalTime > 120);
 
       return matchesSearch && matchesCuisine && matchesDiet && matchesTime;
     });
@@ -51,32 +76,37 @@ export function HomeBrowse({ user, onProfile, onCreateRecipe, onRecipeClick, onS
   const filteredRecipes = filterRecipes(mockRecipes);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation 
-        user={user}
-        currentPage="home"
-        onHome={() => {}}
-        onProfile={onProfile}
-        onCreateRecipe={onCreateRecipe}
-        onSignOut={onSignOut}
-      />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold">Welcome back, {user.displayName}!</h1>
-              <p className="text-gray-600">Discover new recipes and manage your collection</p>
+      <div className="min-h-screen bg-gray-50">
+        <Navigation
+            user={user ?? undefined}
+            currentPage="home"
+            onHome={() => {}}
+            onProfile={handleProfile}
+            onCreateRecipe={handleCreate}
+            onSignOut={handleSignOut}
+        />
+
+        <div className="container mx-auto px-4 py-8">
+          {/* Welcome Section */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h1 className="text-3xl font-bold">
+                  {user ? `Welcome back, ${user.displayName}!` : "Browse Recipes"}
+                </h1>
+                <p className="text-gray-600">
+                  {user ? "Discover new recipes and manage your collection" : "Discover new recipes from the community"}
+                </p>
+              </div>
+
+              {/* Only show “Create” when logged in */}
+              {user && (
+                  <Button onClick={handleCreate} className="bg-orange-500 hover:bg-orange-600">
+                    Create New Recipe
+                  </Button>
+              )}
             </div>
-            <Button 
-              onClick={onCreateRecipe}
-              className="bg-orange-500 hover:bg-orange-600"
-            >
-              Create New Recipe
-            </Button>
           </div>
-        </div>
 
         {/* Search and Filters */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
@@ -148,29 +178,29 @@ export function HomeBrowse({ user, onProfile, onCreateRecipe, onRecipeClick, onS
         </div>
 
         {/* Recipe Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRecipes.map(recipe => (
-            <Card 
-              key={recipe.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => onRecipeClick(recipe.id)}
-            >
-              <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
-                <img 
-                  src={recipe.imageUrl} 
-                  alt={recipe.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-2 right-2 flex space-x-1">
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Handle bookmark toggle
-                    }}
-                  >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRecipes.map((recipe) => (
+                <Card
+                    key={recipe.id}
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => handleRecipeClick(recipe.id)}
+                >
+
+                  <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+                    <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
+                    <div className="absolute top-2 right-2 flex space-x-1">
+                      <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // route to login here for bookmarking:
+                            if (!user) return go("/login");
+                            // otherwise toggle bookmark
+                          }}
+                      >
+
                     <Heart className="h-4 w-4" />
                   </Button>
                 </div>

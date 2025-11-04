@@ -108,9 +108,9 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
           <div className="space-x-4">
             <Button 
               size="lg" 
-              variant="secondary" 
+              variant="outline"
               onClick={onSignUp}
-              className="bg-white text-orange-500 hover:bg-gray-100"
+              className="border-orange-500 text-orange-500 bg-white hover:bg-orange-50"
             >
               Create Account
             </Button>
