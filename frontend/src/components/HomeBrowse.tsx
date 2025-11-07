@@ -1,55 +1,23 @@
 'use client';
 
-import {AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, useMemo, useState} from "react";
-import {useRouter} from "next/navigation";
-import type {Route} from "next";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { Route } from "next";
 
-import {Button} from "./ui/button";
-import {Input} from "./ui/input";
-import {Card, CardContent, CardHeader, CardTitle} from "./ui/card";
-import {Badge} from "./ui/badge";
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "./ui/select";
-import {Navigation} from "./Navigation";
-import {Search, Clock, Users, Heart, TrendingUp, ChefHat} from "lucide-react";
-import {cuisineTypes, dietaryFilters, timeFilters} from "../data/recipes";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Navigation } from "./Navigation";
+import { Search, ChefHat } from "lucide-react";
+import { cuisineTypes, dietaryFilters, timeFilters } from "../data/recipes";
+import type { ApiRecipe, UiRecipe } from "@/src/types/recipe";
+import { RecipeCard } from "./RecipeCard";
 
 interface User {
     id: string;
     displayName: string;
     email: string;
 }
-// api json object
-type ApiRecipe = {
-    recipeID: number;
-    title: string;
-    description?: string | null;
-    prepTime?: number | null;
-    cookTime?: number | null;
-    servings?: number | null;
-    difficulty?: number | null;
-    upvotes?: number | null;
-    steps?: string | null;
-    recipeOwner?: { name?: string } | string | null;
-    imageUrl?: string | null;
-    tag?: string | null;
-    ingredients?: unknown[];
-};
-
-// ui json object
-type UiRecipe = {
-    id: string;
-    title: string;
-    description: string;
-    imageUrl: string;
-    cuisine: string;
-    dietaryTags: string[];      // derive from 'tag'
-    prepTime: number;
-    cookTime: number;
-    servings: number;
-    upvotes: number;
-    bookmarkCount: number;
-    author: string;
-};
 
 interface HomeBrowseProps {
     recipes: ApiRecipe[] | null;
@@ -65,14 +33,12 @@ interface HomeBrowseProps {
     onSignUp?: () => void;
 }
 
-
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     const author =
         typeof r.recipeOwner === "string"
             ? r.recipeOwner
             : r?.recipeOwner?.name ?? "Unknown";
 
-    // convert "QUICK_EASY" -> ["Quick", "Easy"]
     const dietaryTags = (r.tag ?? "")
         .split("_")
         .map(t => t.trim())
@@ -84,7 +50,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         title: r.title,
         description: r.description ?? "",
         imageUrl: r.imageUrl ?? "/placeholder.png",
-        cuisine: "Other",                     // no cuisine in API
+        cuisine: "Other",
         dietaryTags,
         prepTime: r.prepTime ?? 0,
         cookTime: r.cookTime ?? 0,
@@ -107,14 +73,12 @@ export function HomeBrowse({
                                onSignUp,
                            }: HomeBrowseProps) {
     const router = useRouter();
+    const go = (path: string) => router.push(path as Route);
 
     const allRecipes: UiRecipe[] = useMemo(
         () => (recipes ?? []).map(normalizeRecipe),
         [recipes]
     );
-
-
-    const go = (path: string) => router.push(path as Route);
 
     const handleRecipeClick = (id: string) =>
         onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
@@ -126,18 +90,16 @@ export function HomeBrowse({
     const handleSignIn = () => (onSignIn ? onSignIn() : go("/sign-in"));
     const handleSignUp = () => (onSignUp ? onSignUp() : go("/sign-up"));
 
-
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCuisine, setSelectedCuisine] = useState("All");
     const [selectedDiet, setSelectedDiet] = useState("All");
     const [selectedTime, setSelectedTime] = useState("All");
 
-
     const filteredRecipes = useMemo(
         () =>
             allRecipes.filter((recipe) => {
                 const q = searchQuery.toLowerCase();
-                const matchesSearch =
+                const matchesSearch = !q ||
                     recipe.title.toLowerCase().includes(q) ||
                     recipe.description.toLowerCase().includes(q);
 
@@ -160,7 +122,6 @@ export function HomeBrowse({
         [allRecipes, searchQuery, selectedCuisine, selectedDiet, selectedTime]
     );
 
-
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation
@@ -178,7 +139,7 @@ export function HomeBrowse({
                     <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-8">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
-                                <ChefHat className="h-5 w-5 text-orange-600"/>
+                                <ChefHat className="h-5 w-5 text-orange-600" />
                                 <div>
                                     <p className="font-medium text-orange-800">Browsing as Guest</p>
                                     <p className="text-sm text-orange-600">
@@ -187,12 +148,8 @@ export function HomeBrowse({
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleBack}>
-                                    Back to Home
-                                </Button>
-                                <Button variant="outline" onClick={handleSignIn}>
-                                    Sign In
-                                </Button>
+                                <Button variant="outline" onClick={handleBack}>Back to Home</Button>
+                                <Button variant="outline" onClick={handleSignIn}>Sign In</Button>
                                 <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleSignUp}>
                                     Sign Up
                                 </Button>
@@ -229,9 +186,8 @@ export function HomeBrowse({
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                     <h2 className="text-xl font-semibold mb-4">Find Recipes</h2>
 
-                    {/* Search Bar */}
                     <div className="relative mb-6">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4"/>
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
                         <Input
                             type="text"
                             placeholder="Search recipes..."
@@ -241,19 +197,14 @@ export function HomeBrowse({
                         />
                     </div>
 
-                    {/* Filters */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-2">Cuisine</label>
                             <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select cuisine"/>
-                                </SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select cuisine" /></SelectTrigger>
                                 <SelectContent>
                                     {cuisineTypes.map((cuisine) => (
-                                        <SelectItem key={cuisine} value={cuisine}>
-                                            {cuisine}
-                                        </SelectItem>
+                                        <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -262,14 +213,10 @@ export function HomeBrowse({
                         <div>
                             <label className="block text-sm font-medium mb-2">Diet</label>
                             <Select value={selectedDiet} onValueChange={setSelectedDiet}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select diet"/>
-                                </SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select diet" /></SelectTrigger>
                                 <SelectContent>
                                     {dietaryFilters.map((diet) => (
-                                        <SelectItem key={diet} value={diet}>
-                                            {diet}
-                                        </SelectItem>
+                                        <SelectItem key={diet} value={diet}>{diet}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -278,14 +225,10 @@ export function HomeBrowse({
                         <div>
                             <label className="block text-sm font-medium mb-2">Time</label>
                             <Select value={selectedTime} onValueChange={setSelectedTime}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select time"/>
-                                </SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
                                 <SelectContent>
                                     {timeFilters.map((time) => (
-                                        <SelectItem key={time} value={time}>
-                                            {time}
-                                        </SelectItem>
+                                        <SelectItem key={time} value={time}>{time}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -302,97 +245,39 @@ export function HomeBrowse({
 
                 {/* Recipe Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredRecipes.map((recipe) => (
-                        <Card
-                            key={recipe.id}
-                            className="cursor-pointer hover:shadow-lg transition-shadow"
-                            onClick={() => handleRecipeClick(recipe.id)}
+                    {filteredRecipes.map((r) => (
+                        <RecipeCard
+                            key={r.id}
+                            recipe={r}
+                            onOpen={(id) => onRecipeClick?.(id) ?? go(`/recipes/${id}`)}
+                            onBookmark={(id: string) => {
+                                console.log("bookmark", id);
+                            }}
+                            isAuthed={!!user}
+                            onRequireAuth={() => (onSignIn?.() ?? go("/sign-in"))}
+                        />
+
+                    ))}
+                </div>
+
+                {/* Empty state */}
+                {filteredRecipes.length === 0 && (
+                    <div className="text-center py-12">
+                        <p className="text-gray-500 mb-4">No recipes found matching your criteria.</p>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setSearchQuery("");
+                                setSelectedCuisine("All");
+                                setSelectedDiet("All");
+                                setSelectedTime("All");
+                            }}
                         >
-                            <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
-                                <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover"/>
-                                <div className="absolute top-2 right-2 flex space-x-1">
-                                    <Button
-                                        size="sm"
-                                        variant="secondary"
-                                        className="h-8 w-8 p-0"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (!user) return handleSignIn();
-                                            // TODO: toggle bookmark here for signed-in users
-                                        }}
-                                    >
-                                        <Heart className="h-4 w-4"/>
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
-                                    <CardTitle className="text-lg line-clamp-2">{recipe.title}</CardTitle>
-                                    <div className="flex items-center space-x-1 text-sm text-gray-500">
-                                        <Heart className="h-4 w-4 fill-red-400 text-red-400"/>
-                                        <span>{recipe.bookmarkCount}</span>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-gray-600">by {recipe.author}</p>
-                            </CardHeader>
-
-                            <CardContent className="pt-0">
-                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{recipe.description}</p>
-
-                                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                                    <div className="flex items-center space-x-1">
-                                        <Clock className="h-4 w-4"/>
-                                        <span>{recipe.prepTime + recipe.cookTime} min</span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                        <Users className="h-4 w-4"/>
-                                        <span>{recipe.servings} servings</span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                        <TrendingUp className="h-4 w-4"/>
-                                        <span>{recipe.upvotes}</span>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap gap-1">
-                                    <Badge variant="secondary" className="text-xs">
-                                        {recipe.cuisine}
-                                    </Badge>
-                                    {recipe.dietaryTags
-                                        .slice(0, 2)
-                                        .map((tag: string, idx: number) => (
-                          <Badge
-                              key={`${recipe.id}-tag-${idx}`}
-                              variant="outline"
-                              className="text-xs">
-                            {tag}
-                          </Badge>
-                      ))}
+                            Clear Filters
+                        </Button>
                     </div>
-                  </CardContent>
-                </Card>
-            ))}
-          </div>
-
-          {/* Empty state */}
-          {filteredRecipes.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">No recipes found matching your criteria.</p>
-                <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setSelectedCuisine("All");
-                      setSelectedDiet("All");
-                      setSelectedTime("All");
-                    }}
-                >
-                  Clear Filters
-                </Button>
-              </div>
-          )}
+                )}
+            </div>
         </div>
-      </div>
-  );
+    );
 }

@@ -30,6 +30,7 @@ declare namespace __next_route_internal_types__ {
 
   type StaticRoutes = 
     | `/`
+    | `/api/recipes`
     | `/browse`
     | `/sign-in`
     | `/sign-up`

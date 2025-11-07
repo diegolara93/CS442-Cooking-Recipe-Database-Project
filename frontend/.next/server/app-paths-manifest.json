@@ -1,3 +1,5 @@
 {
-  "/browse/page": "app/browse/page.js"
+  "/page": "app/page.js",
+  "/browse/page": "app/browse/page.js",
+  "/api/recipes/route": "app/api/recipes/route.js"
 }
