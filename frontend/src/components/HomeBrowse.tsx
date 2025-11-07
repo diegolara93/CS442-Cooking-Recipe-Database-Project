@@ -1,293 +1,371 @@
 'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import type { Route } from "next";
+import {AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, useMemo, useState} from "react";
+import {useRouter} from "next/navigation";
+import type {Route} from "next";
 
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Navigation } from "./Navigation";
-import { Search, Clock, Users, Heart, TrendingUp, ChefHat } from "lucide-react";
-import { mockRecipes, cuisineTypes, dietaryFilters, timeFilters, Recipe } from "../data/recipes";
+import {Button} from "./ui/button";
+import {Input} from "./ui/input";
+import {Card, CardContent, CardHeader, CardTitle} from "./ui/card";
+import {Badge} from "./ui/badge";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "./ui/select";
+import {Navigation} from "./Navigation";
+import {Search, Clock, Users, Heart, TrendingUp, ChefHat} from "lucide-react";
+import {cuisineTypes, dietaryFilters, timeFilters} from "../data/recipes";
 
 interface User {
-  id: string;
-  displayName: string;
-  email: string;
+    id: string;
+    displayName: string;
+    email: string;
 }
+// api json object
+type ApiRecipe = {
+    recipeID: number;
+    title: string;
+    description?: string | null;
+    prepTime?: number | null;
+    cookTime?: number | null;
+    servings?: number | null;
+    difficulty?: number | null;
+    upvotes?: number | null;
+    steps?: string | null;
+    recipeOwner?: { name?: string } | string | null;
+    imageUrl?: string | null;
+    tag?: string | null;
+    ingredients?: unknown[];
+};
+
+// ui json object
+type UiRecipe = {
+    id: string;
+    title: string;
+    description: string;
+    imageUrl: string;
+    cuisine: string;
+    dietaryTags: string[];      // derive from 'tag'
+    prepTime: number;
+    cookTime: number;
+    servings: number;
+    upvotes: number;
+    bookmarkCount: number;
+    author: string;
+};
 
 interface HomeBrowseProps {
-  user?: User | null;
-  onProfile?: () => void;
-  onCreateRecipe?: () => void;
-  onRecipeClick?: (recipeId: string) => void;
-  onSignOut?: () => void;
+    recipes: ApiRecipe[] | null;
+    user?: User | null;
 
-  onBack?: () => void;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
+    onProfile?: () => void;
+    onCreateRecipe?: () => void;
+    onRecipeClick?: (recipeId: string) => void;
+    onSignOut?: () => void;
+
+    onBack?: () => void;
+    onSignIn?: () => void;
+    onSignUp?: () => void;
 }
 
+
+const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
+    const author =
+        typeof r.recipeOwner === "string"
+            ? r.recipeOwner
+            : r?.recipeOwner?.name ?? "Unknown";
+
+    // convert "QUICK_EASY" -> ["Quick", "Easy"]
+    const dietaryTags = (r.tag ?? "")
+        .split("_")
+        .map(t => t.trim())
+        .filter(Boolean)
+        .map(t => t[0] + t.slice(1).toLowerCase());
+
+    return {
+        id: String(r.recipeID),
+        title: r.title,
+        description: r.description ?? "",
+        imageUrl: r.imageUrl ?? "/placeholder.png",
+        cuisine: "Other",                     // no cuisine in API
+        dietaryTags,
+        prepTime: r.prepTime ?? 0,
+        cookTime: r.cookTime ?? 0,
+        servings: r.servings ?? 1,
+        upvotes: r.upvotes ?? 0,
+        bookmarkCount: 0,
+        author,
+    };
+};
+
 export function HomeBrowse({
-                             user = null,
-                             onProfile,
-                             onCreateRecipe,
-                             onRecipeClick,
-                             onSignOut,
-                             onBack,
-                             onSignIn,
-                             onSignUp,
+                               recipes = [],
+                               user = null,
+                               onProfile,
+                               onCreateRecipe,
+                               onRecipeClick,
+                               onSignOut,
+                               onBack,
+                               onSignIn,
+                               onSignUp,
                            }: HomeBrowseProps) {
-  const router = useRouter();
+    const router = useRouter();
+
+    const allRecipes: UiRecipe[] = useMemo(
+        () => (recipes ?? []).map(normalizeRecipe),
+        [recipes]
+    );
 
 
-  const go = (path: string) => router.push(path as Route);
+    const go = (path: string) => router.push(path as Route);
 
-  const handleRecipeClick = (id: string) =>
-      onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
+    const handleRecipeClick = (id: string) =>
+        onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
+    const handleProfile = () => (onProfile ? onProfile() : go("/profile"));
+    const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/recipes/new"));
+    const handleSignOut = () => (onSignOut ? onSignOut() : go("/logout"));
 
-  const handleProfile = () => (onProfile ? onProfile() : go("/profile"));
-  const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/recipes/new"));
-  const handleSignOut = () => (onSignOut ? onSignOut() : go("/logout"));
-
-  const handleBack = () => (onBack ? onBack() : go("/"));
-  const handleSignIn = () => (onSignIn ? onSignIn() : go("/sign-in"));
-  const handleSignUp = () => (onSignUp ? onSignUp() : go("/sign-up"));
-
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCuisine, setSelectedCuisine] = useState("All");
-  const [selectedDiet, setSelectedDiet] = useState("All");
-  const [selectedTime, setSelectedTime] = useState("All");
+    const handleBack = () => (onBack ? onBack() : go("/"));
+    const handleSignIn = () => (onSignIn ? onSignIn() : go("/sign-in"));
+    const handleSignUp = () => (onSignUp ? onSignUp() : go("/sign-up"));
 
 
-  const filterRecipes = (recipes: Recipe[]) =>
-      recipes.filter((recipe) => {
-        const matchesSearch =
-            recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            recipe.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-        const matchesCuisine = selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
-
-        const matchesDiet = selectedDiet === "All" || recipe.dietaryTags.includes(selectedDiet);
-
-        const totalTime = recipe.prepTime + recipe.cookTime;
-        const matchesTime =
-            selectedTime === "All" ||
-            (selectedTime === "Under 30 min" && totalTime < 30) ||
-            (selectedTime === "30-60 min" && totalTime >= 30 && totalTime <= 60) ||
-            (selectedTime === "1-2 hours" && totalTime > 60 && totalTime <= 120) ||
-            (selectedTime === "2+ hours" && totalTime > 120);
-
-        return matchesSearch && matchesCuisine && matchesDiet && matchesTime;
-      });
-
-  const filteredRecipes = filterRecipes(mockRecipes);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedCuisine, setSelectedCuisine] = useState("All");
+    const [selectedDiet, setSelectedDiet] = useState("All");
+    const [selectedTime, setSelectedTime] = useState("All");
 
 
-  return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation
-            user={user ?? undefined}
-            currentPage="home"
-            onHome={handleBack}
-            onProfile={handleProfile}
-            onCreateRecipe={handleCreate}
-            onSignOut={handleSignOut}
-        />
+    const filteredRecipes = useMemo(
+        () =>
+            allRecipes.filter((recipe) => {
+                const q = searchQuery.toLowerCase();
+                const matchesSearch =
+                    recipe.title.toLowerCase().includes(q) ||
+                    recipe.description.toLowerCase().includes(q);
 
-        {/* Guest Notice (only when no user) */}
-        {!user && (
-            <div className="container mx-auto px-4 mt-8">
-              <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <ChefHat className="h-5 w-5 text-orange-600" />
-                    <div>
-                      <p className="font-medium text-orange-800">Browsing as Guest</p>
-                      <p className="text-sm text-orange-600">
-                        Sign in to bookmark recipes, upvote, and leave comments.
-                      </p>
+                const matchesCuisine =
+                    selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
+
+                const matchesDiet =
+                    selectedDiet === "All" || recipe.dietaryTags.includes(selectedDiet);
+
+                const totalTime = recipe.prepTime + recipe.cookTime;
+                const matchesTime =
+                    selectedTime === "All" ||
+                    (selectedTime === "Under 30 min" && totalTime < 30) ||
+                    (selectedTime === "30-60 min" && totalTime >= 30 && totalTime <= 60) ||
+                    (selectedTime === "1-2 hours" && totalTime > 60 && totalTime <= 120) ||
+                    (selectedTime === "2+ hours" && totalTime > 120);
+
+                return matchesSearch && matchesCuisine && matchesDiet && matchesTime;
+            }),
+        [allRecipes, searchQuery, selectedCuisine, selectedDiet, selectedTime]
+    );
+
+
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <Navigation
+                user={user ?? undefined}
+                currentPage="home"
+                onHome={handleBack}
+                onProfile={handleProfile}
+                onCreateRecipe={handleCreate}
+                onSignOut={handleSignOut}
+            />
+
+            {/* Guest Notice (only when no user) */}
+            {!user && (
+                <div className="container mx-auto px-4 mt-8">
+                    <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                                <ChefHat className="h-5 w-5 text-orange-600"/>
+                                <div>
+                                    <p className="font-medium text-orange-800">Browsing as Guest</p>
+                                    <p className="text-sm text-orange-600">
+                                        Sign in to bookmark recipes, upvote, and leave comments.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <Button variant="outline" onClick={handleBack}>
+                                    Back to Home
+                                </Button>
+                                <Button variant="outline" onClick={handleSignIn}>
+                                    Sign In
+                                </Button>
+                                <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleSignUp}>
+                                    Sign Up
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleBack}>
-                      Back to Home
-                    </Button>
-                    <Button variant="outline" onClick={handleSignIn}>
-                      Sign In
-                    </Button>
-                    <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleSignUp}>
-                      Sign Up
-                    </Button>
-                  </div>
                 </div>
-              </div>
-            </div>
-        )}
+            )}
 
-        <div className="container mx-auto px-4 py-8">
-          {/* Welcome Section */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h1 className="text-3xl font-bold">
-                  {user ? `Welcome back, ${user.displayName}!` : "Browse Recipes"}
-                </h1>
-                <p className="text-gray-600">
-                  {user
-                      ? "Discover new recipes and manage your collection."
-                      : "Discover new recipes from the community!"}
-                </p>
-              </div>
+            <div className="container mx-auto px-4 py-8">
+                {/* Welcome Section */}
+                <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h1 className="text-3xl font-bold">
+                                {user ? `Welcome back, ${user.displayName}!` : "Browse Recipes"}
+                            </h1>
+                            <p className="text-gray-600">
+                                {user
+                                    ? "Discover new recipes and manage your collection."
+                                    : "Discover new recipes from the community!"}
+                            </p>
+                        </div>
 
-              {user && (
-                  <Button onClick={handleCreate} className="bg-orange-500 hover:bg-orange-600">
-                    Create New Recipe
-                  </Button>
-              )}
-            </div>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Find Recipes</h2>
-
-            {/* Search Bar */}
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                  type="text"
-                  placeholder="Search recipes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-              />
-            </div>
-
-            {/* Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Cuisine</label>
-                <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select cuisine" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cuisineTypes.map((cuisine) => (
-                        <SelectItem key={cuisine} value={cuisine}>
-                          {cuisine}
-                        </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Diet</label>
-                <Select value={selectedDiet} onValueChange={setSelectedDiet}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select diet" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {dietaryFilters.map((diet) => (
-                        <SelectItem key={diet} value={diet}>
-                          {diet}
-                        </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Time</label>
-                <Select value={selectedTime} onValueChange={setSelectedTime}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select time" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeFilters.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Results */}
-          <div className="mb-4">
-            <p className="text-gray-600">
-              {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? "s" : ""} found
-            </p>
-          </div>
-
-          {/* Recipe Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRecipes.map((recipe) => (
-                <Card
-                    key={recipe.id}
-                    className="cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => handleRecipeClick(recipe.id)}
-                >
-                  <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
-                    <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
-                    <div className="absolute top-2 right-2 flex space-x-1">
-                      <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!user) return handleSignIn();
-                            // TODO: toggle bookmark here for signed-in users
-                          }}
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
+                        {user && (
+                            <Button onClick={handleCreate} className="bg-orange-500 hover:bg-orange-600">
+                                Create New Recipe
+                            </Button>
+                        )}
                     </div>
-                  </div>
+                </div>
 
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <CardTitle className="text-lg line-clamp-2">{recipe.title}</CardTitle>
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <Heart className="h-4 w-4 fill-red-400 text-red-400" />
-                        <span>{recipe.bookmarkCount}</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">by {recipe.author}</p>
-                  </CardHeader>
+                {/* Search and Filters */}
+                <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+                    <h2 className="text-xl font-semibold mb-4">Find Recipes</h2>
 
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{recipe.description}</p>
-
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{recipe.prepTime + recipe.cookTime} min</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4" />
-                        <span>{recipe.servings} servings</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>{recipe.upvotes}</span>
-                      </div>
+                    {/* Search Bar */}
+                    <div className="relative mb-6">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4"/>
+                        <Input
+                            type="text"
+                            placeholder="Search recipes..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10"
+                        />
                     </div>
 
-                    <div className="flex flex-wrap gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {recipe.cuisine}
-                      </Badge>
-                      {recipe.dietaryTags.slice(0, 2).map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
+                    {/* Filters */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Cuisine</label>
+                            <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select cuisine"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {cuisineTypes.map((cuisine) => (
+                                        <SelectItem key={cuisine} value={cuisine}>
+                                            {cuisine}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Diet</label>
+                            <Select value={selectedDiet} onValueChange={setSelectedDiet}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select diet"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {dietaryFilters.map((diet) => (
+                                        <SelectItem key={diet} value={diet}>
+                                            {diet}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Time</label>
+                            <Select value={selectedTime} onValueChange={setSelectedTime}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select time"/>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {timeFilters.map((time) => (
+                                        <SelectItem key={time} value={time}>
+                                            {time}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Results */}
+                <div className="mb-4">
+                    <p className="text-gray-600">
+                        {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? "s" : ""} found
+                    </p>
+                </div>
+
+                {/* Recipe Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredRecipes.map((recipe) => (
+                        <Card
+                            key={recipe.id}
+                            className="cursor-pointer hover:shadow-lg transition-shadow"
+                            onClick={() => handleRecipeClick(recipe.id)}
+                        >
+                            <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
+                                <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover"/>
+                                <div className="absolute top-2 right-2 flex space-x-1">
+                                    <Button
+                                        size="sm"
+                                        variant="secondary"
+                                        className="h-8 w-8 p-0"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!user) return handleSignIn();
+                                            // TODO: toggle bookmark here for signed-in users
+                                        }}
+                                    >
+                                        <Heart className="h-4 w-4"/>
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <CardHeader className="pb-3">
+                                <div className="flex items-start justify-between">
+                                    <CardTitle className="text-lg line-clamp-2">{recipe.title}</CardTitle>
+                                    <div className="flex items-center space-x-1 text-sm text-gray-500">
+                                        <Heart className="h-4 w-4 fill-red-400 text-red-400"/>
+                                        <span>{recipe.bookmarkCount}</span>
+                                    </div>
+                                </div>
+                                <p className="text-sm text-gray-600">by {recipe.author}</p>
+                            </CardHeader>
+
+                            <CardContent className="pt-0">
+                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{recipe.description}</p>
+
+                                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                                    <div className="flex items-center space-x-1">
+                                        <Clock className="h-4 w-4"/>
+                                        <span>{recipe.prepTime + recipe.cookTime} min</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        <Users className="h-4 w-4"/>
+                                        <span>{recipe.servings} servings</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1">
+                                        <TrendingUp className="h-4 w-4"/>
+                                        <span>{recipe.upvotes}</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-wrap gap-1">
+                                    <Badge variant="secondary" className="text-xs">
+                                        {recipe.cuisine}
+                                    </Badge>
+                                    {recipe.dietaryTags
+                                        .slice(0, 2)
+                                        .map((tag: string, idx: number) => (
+                          <Badge
+                              key={`${recipe.id}-tag-${idx}`}
+                              variant="outline"
+                              className="text-xs">
                             {tag}
                           </Badge>
                       ))}

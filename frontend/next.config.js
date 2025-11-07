@@ -12,6 +12,15 @@ const nextConfig = {
     // Skip ESLint during builds to reduce surface area while stabilizing
     ignoreDuringBuilds: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.imgur.com",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 module.exports = nextConfig;
