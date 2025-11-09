@@ -39,11 +39,11 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
             ? r.recipeOwner
             : r?.recipeOwner?.name ?? "Unknown";
 
-    const dietaryTags = (r.tag ?? "")
-        .split("_")
-        .map(t => t.trim())
-        .filter(Boolean)
-        .map(t => t[0] + t.slice(1).toLowerCase());
+    // const dietaryTags = (r.tag ?? "")
+    //     .split("_")
+    //     .map(t => t.trim())
+    //     .filter(Boolean)
+    //     .map(t => t[0] + t.slice(1).toLowerCase());
 
     return {
         id: String(r.recipeID),
@@ -51,7 +51,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         description: r.description ?? "",
         imageUrl: r.imageUrl ?? "/placeholder.png",
         cuisine: "Other",
-        dietaryTags,
+        dietaryTags : r.tag ?? [] ,
         prepTime: r.prepTime ?? 0,
         cookTime: r.cookTime ?? 0,
         servings: r.servings ?? 1,

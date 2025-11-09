@@ -1,4 +1,4 @@
-// File: C:\Users\markt\IdeaProjects\CS442-Cooking-Recipe-Database-Project\frontend\app\layout.tsx
+// File: /Users/diego/Documents/dev/CS442-Cooking-Recipe-Database-Project/frontend/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

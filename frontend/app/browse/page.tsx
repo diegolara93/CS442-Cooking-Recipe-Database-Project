@@ -13,7 +13,7 @@ type ApiRecipe = {
   steps?: string | null;
   recipeOwner?: { name?: string } | string | null;
   imageUrl?: string | null;
-  tag?: string | null; // e.g. "QUICK_EASY"
+  tag?: string[] | null; 
   ingredients?: unknown[];
 };
 
@@ -22,7 +22,7 @@ type ApiRecipe = {
     const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const baseUrl = `${protocol}://${host}`;
 
-    const res = await fetch(`${baseUrl}/api/recipes`, { cache: "no-store" });
+    const res = await fetch(`http://localhost:8080/api/recipes/all`, { cache: "no-store" }); // TODO: change this back to use an env variable
     const recipes: ApiRecipe[] = res.ok ? await res.json() : [];
 
     return <HomeBrowse recipes={recipes} user={null} />;

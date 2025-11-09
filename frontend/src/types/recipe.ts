@@ -11,7 +11,7 @@ export type ApiRecipe = {
     steps?: string | null;
     recipeOwner?: { name?: string } | string | null;
     imageUrl?: string | null;
-    tag?: string | null;
+    tag?: string[] | null;
     ingredients?: unknown[];
 };
 
