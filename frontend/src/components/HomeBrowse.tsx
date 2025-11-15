@@ -46,6 +46,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     //     .map(t => t[0] + t.slice(1).toLowerCase());
 
     return {
+        commentCount: 0, comments: [], ingredients: [], // subject to change
         id: String(r.recipeID),
         title: r.title,
         description: r.description ?? "",
@@ -57,7 +58,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         servings: r.servings ?? 1,
         upvotes: r.upvotes ?? 0,
         bookmarkCount: 0,
-        author,
+        author
     };
 };
 

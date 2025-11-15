@@ -86,19 +86,19 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
   };
 
   const handleSaveDraft = () => {
-    // In a real app, this would save to backend
+    // in the real app, this will post to backend as a draft (if we keep it)
     console.log("Saving draft...");
     alert("Recipe saved as draft!");
   };
 
   const handlePublish = () => {
-    // Basic validation
+    // basic validation
     if (!title || !description || !cuisine || ingredients.length === 0 || instructions.length === 0) {
       alert("Please fill in all required fields");
       return;
     }
 
-    // In a real app, this would publish to backend
+    // in the real app, this will post to backend
     console.log("Publishing recipe...");
     alert("Recipe published successfully!");
     onHome();

@@ -1,4 +1,5 @@
-// API shape coming from Spring
+// API shapes coming from Spring
+
 export type ApiRecipe = {
     recipeID: number;
     title: string;
@@ -13,9 +14,24 @@ export type ApiRecipe = {
     imageUrl?: string | null;
     tag?: string[] | null;
     ingredients?: unknown[];
+    comments?: ApiComment[] | null;
 };
 
+export type ApiComment = {
+    commentID: number;
+    recipeID: number;
+    content: string;
+    commenterUsername: string;
+}
+
 // UI shape used by the app/components
+
+export type UiComment = {
+    id: string;
+    author: string;
+    content: string;
+}
+
 export type UiRecipe = {
     id: string;
     title: string;
@@ -29,4 +45,7 @@ export type UiRecipe = {
     upvotes: number;
     bookmarkCount: number;
     author: string;
+    ingredients: string[];
+    comments: UiComment[];
+    commentCount: number;
 };
