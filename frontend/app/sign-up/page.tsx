@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { SignUp } from "@/src/components/SignUp";
+import { useApi } from "@/src/lib/apiClient";
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { apiFetch } = useApi();
 
   const handleSignUp = async (
       displayName: string,
@@ -19,12 +21,9 @@ export default function SignUpPage() {
         password,
       });
 
-      const res = await fetch(
-          `http://localhost:8080/api/user/create?${params.toString()}`,
-          {
-            method: "POST",
-
-          }
+      const res = await apiFetch(
+          `/api/user/create?${params.toString()}`,
+          { method: "POST" }
       );
 
       if (!res.ok) {

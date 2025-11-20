@@ -37,7 +37,7 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
 
     const success = onSignIn
         ? await onSignIn(email, password)
-        : true; // default: pretend success (or call your API here)
+        : true;
 
     if (!success) setError("Invalid email or password");
     else router.push("/browse");

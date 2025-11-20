@@ -1,15 +1,21 @@
+import "./globals.css";
+import React from "react";
+import { ClientProviders } from "@/src/components/ClientProviders";
+
+
 export const metadata = {
   title: "Cooking Recipe Database",
   description: "Refactored to Next.js",
 };
 
-import "./globals.css";
-import React from "react";
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+      <ClientProviders>
+      {children}
+        </ClientProviders>
+      </body>
     </html>
   );
 }
