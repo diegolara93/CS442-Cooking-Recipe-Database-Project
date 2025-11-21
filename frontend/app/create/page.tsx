@@ -137,11 +137,6 @@ ingredients.forEach(ing => params.append("ingredients", ing));
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation 
-        currentPage="create-recipe"
-        onHome={onHome}
-        onProfile={onProfile}
-        onCreateRecipe={() => {}}
-        onSignOut={onSignOut}
       />
       
       <div className="container mx-auto px-4 py-8">

@@ -131,11 +131,6 @@ export function HomeBrowse({
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation
-                currentPage="home"
-                onHome={handleBack}
-                onProfile={handleProfile}
-                onCreateRecipe={handleCreate}
-                onSignOut={handleSignOut}
             />
 
             {/* Guest Notice (only when no user) */}
