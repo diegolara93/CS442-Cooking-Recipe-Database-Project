@@ -16,13 +16,14 @@ export default function Page() {
   const { apiFetch } = useApi();
   const {login} = useSession();
 
-  const handleSignIn = async (email: string, password: string): Promise<void> => {
+  const handleSignIn = async (email: string, password: string): Promise<boolean> => {
     try {
       await login(email, password);
       router.push("/browse");
-
+      return true;
     } catch (err) {
       console.error("Error during login:", err);
+      return false;
     }
   };
 

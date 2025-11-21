@@ -13,6 +13,7 @@ import { cuisineTypes, dietaryFilters, timeFilters } from "../data/recipes";
 import type { ApiRecipe, UiRecipe } from "@/src/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useSession } from "../context/CsrfContext";
+import Link from "next/link";
 
 interface User {
     id: string;
@@ -85,8 +86,8 @@ export function HomeBrowse({
 
     const handleRecipeClick = (id: string) =>
         onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
-    const handleProfile = () => (onProfile ? onProfile() : go("/profile"));
-    const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/recipes/new"));
+    const handleProfile = () => (onProfile ? onProfile() : go("/me"));
+    const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/create"));
     const handleSignOut = () => (onSignOut ? onSignOut() : go("/logout"));
 
     const handleBack = () => (onBack ? onBack() : go("/"));
@@ -248,17 +249,17 @@ export function HomeBrowse({
                 {/* Recipe Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredRecipes.map((r) => (
+                        <Link key={r.id} href={`/recipes/${r.id}` as Route}>
                         <RecipeCard
                             key={r.id}
                             recipe={r}
-                            onOpen={(id) => onRecipeClick?.(id) ?? go(`/recipes/${id}`)}
                             onBookmark={(id: string) => {
                                 console.log("bookmark", id);
                             }}
                             isAuthed={!!user}
                             onRequireAuth={() => (onSignIn?.() ?? go("/sign-in"))}
                         />
-
+                    </Link> 
                     ))}
                 </div>
 

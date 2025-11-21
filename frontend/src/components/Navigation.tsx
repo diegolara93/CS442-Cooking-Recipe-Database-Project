@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useSession } from "../context/CsrfContext";
 
 interface User {
   id: string;
@@ -25,8 +26,13 @@ interface NavigationProps {
   onSignOut?: () => void;
 }
 
+
+/*
+Why are these props dynamically passed in? if we change how the profile button works in the browse page we also need to change it in the 
+create recipe page, this should have a shared state that depends on auth status, NOT passed in props.
+TODO: change this MARK!!
+*/ 
 export function Navigation({ 
-  user, 
   currentPage, 
   onHome, 
   onProfile, 
@@ -35,6 +41,7 @@ export function Navigation({
   onSignUp,
   onSignOut 
 }: NavigationProps) {
+  const { user } = useSession();
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">

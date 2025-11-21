@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import {Route} from "next";
 
 type SignInProps = {
-  onSignIn?: (username: string, password: string) => Promise<void>;
+  onSignIn?: (username: string, password: string) => Promise<boolean>;
   onSignUp?: () => void;
   onBack?: () => void;
 };
@@ -38,7 +38,6 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
     const success = onSignIn
         ? await onSignIn(username, password)
         : true;
-
     if (!success) setError("Invalid username or password");
     else router.push("/browse");
 
