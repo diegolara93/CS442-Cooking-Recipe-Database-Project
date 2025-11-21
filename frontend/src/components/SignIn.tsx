@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "./ui/alert";
 import {Route} from "next";
 
 type SignInProps = {
-  onSignIn?: (username: string, password: string) => boolean | Promise<boolean>;
+  onSignIn?: (username: string, password: string) => Promise<void>;
   onSignUp?: () => void;
   onBack?: () => void;
 };
@@ -58,11 +58,12 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
             </Button>
           </div>
 
+
           <Card className="w-full">
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center">Sign in to your account</CardTitle>
               <CardDescription className="text-center">
-                Enter your username and password to access your recipe collection
+                Enter your email and password to access your recipe collection
               </CardDescription>
             </CardHeader>
 

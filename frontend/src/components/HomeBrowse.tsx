@@ -12,6 +12,7 @@ import { Search, ChefHat } from "lucide-react";
 import { cuisineTypes, dietaryFilters, timeFilters } from "../data/recipes";
 import type { ApiRecipe, UiRecipe } from "@/src/types/recipe";
 import { RecipeCard } from "./RecipeCard";
+import { useSession } from "../context/CsrfContext";
 
 interface User {
     id: string;
@@ -64,7 +65,6 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
 
 export function HomeBrowse({
                                recipes = [],
-                               user = null,
                                onProfile,
                                onCreateRecipe,
                                onRecipeClick,
@@ -75,6 +75,8 @@ export function HomeBrowse({
                            }: HomeBrowseProps) {
     const router = useRouter();
     const go = (path: string) => router.push(path as Route);
+
+    const {user, loading} = useSession();
 
     const allRecipes: UiRecipe[] = useMemo(
         () => (recipes ?? []).map(normalizeRecipe),
@@ -126,7 +128,6 @@ export function HomeBrowse({
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation
-                user={user ?? undefined}
                 currentPage="home"
                 onHome={handleBack}
                 onProfile={handleProfile}
@@ -135,7 +136,7 @@ export function HomeBrowse({
             />
 
             {/* Guest Notice (only when no user) */}
-            {!user && (
+            {!user && !loading && (
                 <div className="container mx-auto px-4 mt-8">
                     <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-8">
                         <div className="flex items-center justify-between">
@@ -166,7 +167,7 @@ export function HomeBrowse({
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className="text-3xl font-bold">
-                                {user ? `Welcome back, ${user.displayName}!` : "Browse Recipes"}
+                                {user ? `Welcome back, ${user.username}!` : "Browse Recipes"}
                             </h1>
                             <p className="text-gray-600">
                                 {user
