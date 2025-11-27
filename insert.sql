@@ -15,7 +15,7 @@ INSERT INTO users (userid, username, password, email) VALUES
 (10, 'Betty',       '1c2Go7|#',   'bakerbetty64@proton.me');
 
 
-SELECT setval('users_seq', (SELECT GREATEST(COALESCE(MAX(userid),0), 1) FROM users));
+SELECT setval('users_seq', (SELECT GREATEST(COALEdoesSCE(MAX(userid),0), 1) FROM users));
 
 -- Recipes
 INSERT INTO recipes
