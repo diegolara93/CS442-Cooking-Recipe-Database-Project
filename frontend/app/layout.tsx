@@ -1,6 +1,8 @@
 import "./globals.css";
 import React from "react";
 import { ClientProviders } from "@/src/components/ClientProviders";
+import { ToastContainer } from 'react-toastify'
+import "react-toastify/dist/ReactToastify.css";
 
 
 export const metadata = {
@@ -14,6 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
       <ClientProviders>
       {children}
+          <ToastContainer position="top-right" autoClose={3000} />
         </ClientProviders>
       </body>
     </html>

@@ -14,6 +14,7 @@ import { useSession } from "@/src/context/CsrfContext";
 import { useRouter } from "next/navigation";
 import { IngredientEnum, INGREDIENTS, TagEnum } from "@/src/data/enums";
 import { useApi } from "@/src/lib/apiClient";
+import { toast } from "react-toastify";
 
 interface User {
   id: string;
@@ -64,12 +65,6 @@ export default function CreateRecipe({}: CreateRecipeProps) {
     }
   };
 
-  // const updateIngredient = (index: number, field: keyof Ingredient, value: string) => {
-  //   const updated = ingredients.map((ingredient, i) =>
-  //     i === index ? { ...ingredient, [field]: value } : ingredient
-  //   );
-  //   setIngredients(updated);
-  // };
 
   const addInstruction = () => {
     setInstructions([...instructions, ""]);
@@ -100,10 +95,10 @@ export default function CreateRecipe({}: CreateRecipeProps) {
   const handlePublish = async () => {
     // basic validation
     if (!title || !description || ingredients.length === 0 || instructions.length === 0) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields");
       return;
     }
-
+    try {
     const params = new URLSearchParams();
     params.append("title", title);
     params.append("description", description);
@@ -117,17 +112,22 @@ export default function CreateRecipe({}: CreateRecipeProps) {
     selectedDietaryTags.forEach(tag => params.append("tags", tag));
     ingredients.forEach(ing => params.append("ingredients", ing));
     const res = await apiFetch(
-        `/api/recipes/create?${params.toString()}`,
-        {method: "POST"})
+        `/api/recipes/create?${params.toString()}`, {
+        method: "POST"
+        });
 
     if (!res.ok) {
       console.error("Failed to publish recipe:", res.status);
-      alert("Failed to publish recipe. Please try again.");
+      toast.error("Failed to publish recipe. Please try again.");
       return;
     }
 
-    alert("Recipe published successfully!");
+    toast.success("Recipe published successfully!");
     router.push("/browse");
+  } catch(err) {
+    console.error(err);
+    toast.error("An unexpected error occured.");
+    }
   };
 
   return (
@@ -139,7 +139,7 @@ export default function CreateRecipe({}: CreateRecipeProps) {
           <div className="max-w-4xl mx-auto">
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <h1 className="text-3xl font-bold mb-2">Create New Recipe</h1>
-              <p className="text-gray-600">Share your culinary creation with the community</p>
+              <p className="text-gray-600">Share your culinary creation with the community!</p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
