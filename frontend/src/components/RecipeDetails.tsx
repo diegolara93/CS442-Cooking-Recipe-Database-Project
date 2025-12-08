@@ -18,6 +18,7 @@ import {
 import {ApiRecipe, type UiComment, UiRecipe} from "../types/recipe";
 import { useSession } from "../context/CsrfContext";
 import { useApi } from "@/src/lib/apiClient";
+import { toast } from "react-toastify";
 
 interface RecipeDetailsProps {
   recipeAPI: ApiRecipe;
@@ -98,6 +99,7 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
       const res = await apiFetch(`/api/recipes/r/byId/${recipe.id}`);
       if (!res.ok) {
         console.error("Failed to refresh comments", res.status);
+        toast.error("Failed to refresh comments, please try again!")
         return;
       }
 
@@ -108,6 +110,7 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
       setCommentCount(fresh.commentCount);
     } catch (err) {
       console.error("Error refreshing comments:", err);
+      toast.error("Error refreshing comments.");
     }
   };
 
@@ -146,13 +149,16 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
 
       if (!res.ok) {
         console.error("Failed to post comment", res.status);
+        toast.error("Failed to post comment, please try again!");
         return;
       }
 
       await refreshComments();
       setNewComment("");
+      toast.success("Comment posted!");
     } catch (err) {
       console.error("Error posting comment:", err);
+      toast.error("Error posting comment.");
     }
   };
 

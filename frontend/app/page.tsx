@@ -1,6 +1,6 @@
 "use client";
 
-import { LandingPage } from "../src/components/LandingPage";
+import { LandingPage } from "@/src/components/LandingPage";
 import { useRouter } from "next/navigation";
 
 export default function Page() {
