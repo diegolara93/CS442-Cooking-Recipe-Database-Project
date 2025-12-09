@@ -4,7 +4,7 @@ import type { ApiRecipe } from "@/src/types/recipe";
 const API_BASE = process.env.BACKEND_URL ?? "http://localhost:8080";
 
 async function getRecipe(recipeID: string): Promise<ApiRecipe> {
-  const res = await fetch(`http://localhost:8080/api/recipes/r/byId/${recipeID}`, {
+  const res = await fetch(`${API_BASE}/api/recipes/r/byId/${recipeID}`, {
     cache: "no-store",
   });
 
