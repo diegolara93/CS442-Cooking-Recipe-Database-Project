@@ -23,7 +23,7 @@ type ApiRecipe = {
     const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const baseUrl = `${protocol}://${host}`;
 
-    const res = await fetch(`${URL}/api/recipes/all`); // TODO: change this back to use an env variable
+    const res = await fetch(`${URL}/api/recipes/all`, { cache: "no-store" }); // TODO: change this back to use an env variable
     const recipes: ApiRecipe[] = res.ok ? await res.json() : [];
 
     return <HomeBrowse recipes={recipes} />;
