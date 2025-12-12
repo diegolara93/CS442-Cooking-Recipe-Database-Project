@@ -3,7 +3,4 @@ out
 .idea
 *.iml
 .DS_Store
-build/*
-!build/libs/
-!build/libs/*.jar
 
