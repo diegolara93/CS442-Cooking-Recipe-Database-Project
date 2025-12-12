@@ -31,7 +31,6 @@ public class SecurityConfig {
             "/swagger-ui/**",
             "/swagger-ui.html"
     };
-    // load frontend URL from .env file
 
     private final UserDetailsService userDetailsService;
     public SecurityConfig(UserDetailsService userDetailsService) {
