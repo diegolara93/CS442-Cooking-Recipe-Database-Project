@@ -51,12 +51,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+        csrfRepo.setCookieCustomizer(c -> c.sameSite("None").secure(true));
         http
                 .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers("/api/user/create")
                 )
                 .securityContext(sc -> sc.requireExplicitSave(false))
-
                 .cors(cors -> cors.configurationSource(req -> {
                     var c = new CorsConfiguration();
                     c.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080", frontendUrl));
@@ -73,9 +74,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/create", "/api/recipes/all", "/api/recipes/tags").permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable);
-
 
         return http.build();
     }
