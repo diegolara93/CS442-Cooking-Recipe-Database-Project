@@ -63,7 +63,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
                         <span>{recipe.servings} servings</span>
                     </div>
                     <div className="flex items-center space-x-1">
-                        <TrendingUp className="h-4 w-4" />
+                        <Heart className="h-4 w-4" />
                         <span>{recipe.upvotes}</span>
                     </div>
                 </div>

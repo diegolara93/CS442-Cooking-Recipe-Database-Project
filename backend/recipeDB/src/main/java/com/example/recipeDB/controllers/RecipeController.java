@@ -227,4 +227,20 @@ public class RecipeController {
         );
     }
 
+    @GetMapping("/r/{recipeID}/upvoted")
+    public ResponseEntity<Boolean> isUpvoted(@PathVariable int recipeID, Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.ok(false);
+        }
+
+        User user = userRepository.findByUsername(auth.getName())
+                .orElseThrow(() -> new IllegalStateException("User not found"));
+
+        Recipe recipe = recipeRepository.findById(recipeID)
+                .orElseThrow(() -> new IllegalStateException("Recipe not found"));
+
+        boolean isUpvoted = recipeUpvoteRepository.findByRecipeAndUser(recipe, user).isPresent();
+
+        return ResponseEntity.ok(isUpvoted);
+    }
 }

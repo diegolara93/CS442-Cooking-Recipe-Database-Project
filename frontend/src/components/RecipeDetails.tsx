@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
@@ -10,12 +10,11 @@ import {
   Clock,
   Users,
   Heart,
-  TrendingUp,
   ChefHat,
   MessageCircle,
   Send,
 } from "lucide-react";
-import {ApiRecipe, type UiComment, UiRecipe} from "../types/recipe";
+import { ApiRecipe, type UiComment, UiRecipe } from "../types/recipe";
 import { useSession } from "../context/CsrfContext";
 import { useApi } from "@/src/lib/apiClient";
 import { toast } from "react-toastify";
@@ -46,19 +45,14 @@ const prettyTag = (tag: string) =>
         .map(w => w.charAt(0).toUpperCase() + w.slice(1))
         .join(" ");
 
-
-
 const getAuthor = (r: ApiRecipe): string => {
-
   const fromOwner =
       r.owner?.username && r.owner.username.trim().length > 0
           ? r.owner.username
           : undefined;
 
-
   const fromAuthorField =
       r.author && r.author.trim().length > 0 ? r.author : undefined;
-
 
   const fromOwnerUsername =
       typeof r.ownerUsername === "string"
@@ -68,15 +62,11 @@ const getAuthor = (r: ApiRecipe): string => {
   return fromOwner || fromAuthorField || fromOwnerUsername || "Unknown";
 };
 
-
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
   const comments: UiComment[] = (r.comments ?? []).map((c) => ({
     id: String(c.id ?? c.commentID),
     content: c.text ?? c.content ?? "",
-    author:
-        c.commenterUsername ??
-        r.owner?.username ??
-        "Unknown",
+    author: c.commenterUsername ?? r.owner?.username ?? "Unknown",
   }));
 
   return {
@@ -90,7 +80,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     servings: r.servings ?? 1,
     upvotes: r.upvotes ?? 0,
     bookmarkCount: 0,
-    author: getAuthor(r),           // <- now robust
+    author: getAuthor(r),
     ingredients: r.ingredients ?? [],
     comments,
     commentCount: comments.length,
@@ -101,22 +91,64 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
   };
 };
 
-
-
 export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
-  const [newComment, setNewComment] = useState("");
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [isUpvoted, setIsUpvoted] = useState(false);
-  const [upvoteCount, setUpvoteCount] = useState(0);
-
   const { user } = useSession();
   const { apiFetch } = useApi();
-
   const recipe = normalizeRecipe(recipeAPI);
 
-  // comments live in local state so we can add to them
+  const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState(recipe.comments);
   const [commentCount, setCommentCount] = useState(recipe.commentCount);
+
+  const [isUpvoted, setIsUpvoted] = useState(false);
+  const [upvoteCount, setUpvoteCount] = useState(recipe.upvotes);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function checkUpvoteStatus() {
+      try {
+        const res = await apiFetch(`/api/recipes/r/${recipe.id}/upvoted`);
+        if (res.ok) {
+          const status = await res.json();
+          setIsUpvoted(status);
+        }
+      } catch (err) {
+        console.error("Error checking upvote status", err);
+      }
+    }
+
+    checkUpvoteStatus();
+  }, [user, recipe.id, apiFetch]);
+
+  const handleToggleUpvote = async () => {
+    if (!user) return;
+
+    try {
+      const res = await apiFetch(`/api/recipes/r/${recipe.id}/upvote`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        toast.error("Failed to update favorite status");
+        return;
+      }
+
+      const data = await res.json();
+      setUpvoteCount(data.upvotes);
+      setIsUpvoted(data.upvoted);
+      
+      if(data.upvoted) {
+          toast.success("Added to favorites!");
+      } else {
+          toast.info("Removed from favorites.");
+      }
+
+    } catch (err) {
+      console.error("Error toggling upvote:", err);
+      toast.error("Something went wrong.");
+    }
+  };
 
   const refreshComments = async () => {
     try {
@@ -138,36 +170,17 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
     }
   };
 
-  const handleUpvote = () => {
-    if (!user) return;
-
-    if (isUpvoted) {
-      setUpvoteCount((prev) => prev - 1);
-      setIsUpvoted(false);
-    } else {
-      setUpvoteCount((prev) => prev + 1);
-      setIsUpvoted(true);
-    }
-  };
-
-  const handleBookmark = () => {
-    if (!user) return;
-    setIsBookmarked(!isBookmarked);
-  };
-
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !newComment.trim()) return;
 
     try {
-
       const params = new URLSearchParams({ text: newComment });
 
       const res = await apiFetch(
           `/api/recipes/r/${recipe.id}/comment?${params.toString()}`,
           {
             method: "POST",
-
           }
       );
 
@@ -186,8 +199,6 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
     }
   };
 
-
-
   return (
       <div className="min-h-screen bg-gray-50">
         <Navigation />
@@ -205,7 +216,7 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
 
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
+                  <div className="flex-1 pr-4">
                     <h1 className="text-3xl font-bold mb-2">{recipe.title}</h1>
                     <div className="flex items-center space-x-4 text-gray-600 mb-4">
                       <div className="flex items-center space-x-1">
@@ -214,10 +225,33 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
                       </div>
                     </div>
                   </div>
+
+                  {/* Favorite Button (Only visible if signed in) */}
+                  {user && (
+                    <div className="flex flex-col items-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleToggleUpvote}
+                        className="rounded-full hover:bg-red-50"
+                        title={isUpvoted ? "Remove from favorites" : "Add to favorites"}
+                      >
+                        <Heart
+                          className={`h-8 w-8 transition-colors duration-200 ${
+                            isUpvoted
+                              ? "fill-red-500 text-red-500"
+                              : "text-gray-400"
+                          }`}
+                        />
+                      </Button>
+                      <span className="text-xs text-gray-500 font-medium mt-1">
+                        {upvoteCount}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-gray-700 mb-6">{recipe.description}</p>
-
                 {/* Recipe Meta */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">

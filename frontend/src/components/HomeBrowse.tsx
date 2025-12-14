@@ -50,20 +50,16 @@ const TAG_OPTIONS = [
     { value: "QUICK_EASY",   label: "Quick & Easy" },
     { value: "DESSERT",      label: "Dessert"      },
     { value: "APPETIZER",    label: "Appetizer"    },
-
 ];
 
 const getAuthor = (r: ApiRecipe): string => {
-
     const fromOwner =
         r.owner?.username && r.owner.username.trim().length > 0
             ? r.owner.username
             : undefined;
 
-
     const fromAuthorField =
         r.author && r.author.trim().length > 0 ? r.author : undefined;
-
 
     const fromOwnerUsername =
         typeof r.ownerUsername === "string"
@@ -76,8 +72,8 @@ const getAuthor = (r: ApiRecipe): string => {
 
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     const comments: UiComment[] = (r.comments ?? []).map((c) => ({
-        id: String(c.id ?? c.commentID),          // support both
-        content: c.text ?? c.content ?? "",       // new then old
+        id: String(c.id ?? c.commentID),
+        content: c.text ?? c.content ?? "",
         author:
             c.commenterUsername ??
             r.owner?.username ??
@@ -106,9 +102,6 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     };
 };
 
-
-
-
 export function HomeBrowse({
                                recipes = [],
                                onProfile,
@@ -124,10 +117,28 @@ export function HomeBrowse({
 
     const { user, loading } = useSession();
 
-    const baseRecipes: UiRecipe[] = useMemo(
-        () => (recipes ?? []).map(normalizeRecipe),
-        [recipes]
+    const [baseRecipes, setBaseRecipes] = useState<UiRecipe[]>(() => 
+        (recipes ?? []).map(normalizeRecipe)
     );
+    useEffect(() => {
+        async function fetchFreshRecipes() {
+            try {
+                const res = await fetch(`${API_BASE}/api/recipes/all`, { 
+                    cache: "no-store",
+                    headers: { "Content-Type": "application/json" }
+                });
+                
+                if (res.ok) {
+                    const data: ApiRecipe[] = await res.json();
+                    setBaseRecipes(data.map(normalizeRecipe));
+                }
+            } catch (error) {
+                console.error("Failed to refresh recipes on mount:", error);
+            }
+        }
+
+        fetchFreshRecipes();
+    }, []); 
 
     const handleRecipeClick = (id: string) =>
         onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
@@ -140,7 +151,6 @@ export function HomeBrowse({
     const [searchMode, setSearchMode] = useState<"recipe" | "user">("recipe");
     const [selectedDiet, setSelectedDiet] = useState<string>("All");
     const [selectedTime, setSelectedTime] = useState("All");
-
 
     const [tagRecipes, setTagRecipes] = useState<UiRecipe[] | null>(null);
     const [tagLoading, setTagLoading] = useState(false);

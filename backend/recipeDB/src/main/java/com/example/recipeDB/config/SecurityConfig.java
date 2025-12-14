@@ -23,7 +23,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-    @Value("${frontend.url}")
+    @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     private static final String[] SWAGGER_WHITELIST = {

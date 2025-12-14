@@ -5,6 +5,7 @@ import com.example.recipeDB.models.RecipeUpvote;
 import com.example.recipeDB.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface RecipeUpvoteRepository extends JpaRepository<RecipeUpvote, Integer> {
@@ -12,4 +13,5 @@ public interface RecipeUpvoteRepository extends JpaRepository<RecipeUpvote, Inte
     boolean existsByRecipeAndUser(Recipe recipe, User User);
     void deleteByRecipeAndUser(Recipe recipe, User User);
     Optional<RecipeUpvote> findByRecipeAndUser(Recipe recipe, User user);
+    List<RecipeUpvote> findByUser(User user);
 }
