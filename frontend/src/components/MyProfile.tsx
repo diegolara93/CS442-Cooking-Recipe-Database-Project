@@ -26,6 +26,28 @@ interface MyProfileProps {
   onSignOut: () => void;
 }
 
+const TAG_LABELS: Record<string, string> = {
+  VEGAN: "Vegan",
+  VEGETARIAN: "Vegetarian",
+  GLUTEN_FREE: "Gluten Free",
+  DAIRY_FREE: "Dairy Free",
+  KETO: "Keto",
+  PALEO: "Paleo",
+  LOW_CARB: "Low Carb",
+  HIGH_PROTEIN: "High Protein",
+  QUICK_EASY: "Quick & Easy",
+  DESSERT: "Dessert",
+  APPETIZER: "Appetizer",
+};
+
+const prettyTag = (tag: string) =>
+    TAG_LABELS[tag] ??
+    tag
+        .toLowerCase()
+        .split("_")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
   const author =
       typeof r.ownerUsername === "string"
@@ -135,7 +157,7 @@ export function MyProfile({
           <div className="flex flex-wrap gap-1">
             {recipe.dietaryTags.slice(0, 2).map((tag) => (
                 <Badge key={tag} variant="outline" className="text-xs">
-                  {tag}
+                  {prettyTag(tag)}
                 </Badge>
             ))}
           </div>

@@ -9,6 +9,7 @@ import {
 } from "./ui/dropdown-menu";
 import {useSession} from "../context/CsrfContext";
 import {useRouter} from "next/navigation";
+import Link from "next/link";
 
 interface User {
     id: string;
@@ -41,8 +42,10 @@ export function Navigation({currentPage}: NavigationProps) {
                 <div className="flex items-center justify-between">
                     {/* Logo */}
                     <div className="flex items-center space-x-2">
+                        <Link href="/" className = "flex items-center space-x-2">
                         <ChefHat className="h-8 w-8 text-orange-500"/>
                         <span className="text-2xl font-bold text-gray-900">FlavorDB</span>
+                        </Link>
                     </div>
 
                     {/* Navigation */}
@@ -51,16 +54,16 @@ export function Navigation({currentPage}: NavigationProps) {
                             <>
                                 {/* Authenticated Navigation */}
                                 <Button
-                                    onClick={() => router.push("/")}
-                                    className="hidden sm:flex items-center space-x-2"
+                                    onClick={() => router.push("/browse")}
+                                    className="hidden sm:flex items-center space-x-2 cursor-pointer"
                                 >
-                                    <Home className="h-4 w-4"/>
-                                    <span>Home</span>
+                                    <ChefHat className="h-4 w-4"/>
+                                    <span>Browse</span>
                                 </Button>
 
                                 <Button
                                     onClick={() => router.push("/create")}
-                                    className="hidden sm:flex items-center space-x-2"
+                                    className="hidden sm:flex items-center space-x-2 cursor-pointer"
                                 >
                                     <Plus className="h-4 w-4"/>
                                     <span>Create Recipe</span>
@@ -69,14 +72,14 @@ export function Navigation({currentPage}: NavigationProps) {
                                 {/* User Menu */}
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="flex items-center space-x-2">
+                                        <Button variant="ghost" className="flex items-center space-x-2 cursor-pointer">
                                             <User className="h-4 w-4"/>
                                             <span className="hidden sm:inline">My Profile</span>
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56">
                                         <DropdownMenuItem onClick={() => router.push("/me")}>
-                                            <User className="mr-2 h-4 w-4"/>
+                                            <User className="mr-2 h-4 w-4 cursor-pointer"/>
                                             My Profile
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator className="sm:hidden"/>
