@@ -104,11 +104,11 @@ export function SignUp({ onSignUp, onSignIn, onBack }: SignUpProps) {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="displayName">Display Name</Label>
+                  <Label htmlFor="displayName">Username</Label>
                   <Input
                       id="displayName"
                       type="text"
-                      placeholder="Enter your display name"
+                      placeholder="Enter your username"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       required
