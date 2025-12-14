@@ -70,8 +70,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/user/**").permitAll()
                         .requestMatchers("/api/recipes/u/**").permitAll()
                         .requestMatchers("/api/recipes/r/byId/**").permitAll()
+                        .requestMatchers("/api/recipes/r/**").permitAll()
                         .requestMatchers("/api/user/create", "/api/recipes/all", "/api/recipes/tags").permitAll()
                         .anyRequest().authenticated()
                 )
