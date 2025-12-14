@@ -80,8 +80,3 @@ FROM public.users   AS u
          JOIN public.recipes AS r
               ON r.user_id = u.userid
 WHERE u.username = 'markP';
-
-
-
-
-dw
