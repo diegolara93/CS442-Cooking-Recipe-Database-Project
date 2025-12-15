@@ -4,7 +4,7 @@
 INSERT INTO users (userid, email, password, username)
 VALUES (
            37,
-           'demoUser2@gmail.com',
+           'demoUser2@gmail.com.com',
            crypt('password', gen_salt('bf')),
            'demoUser2'
        );
@@ -12,8 +12,8 @@ VALUES (
 --Query for creating a recipe
 --Used by the recipe creation form/page on our website
 
-INSERT INTO public.recipes (
-    recipeid,
+INSERT INTO recipes (
+	recipeid,
     cook_time,
     description,
     difficulty,
@@ -26,21 +26,22 @@ INSERT INTO public.recipes (
     user_id
 )
 VALUES (
-           20,
+		   1,
            15,
-           'Crispy taco shells filled with seasoned beef, lettuce, cheese, and salsa.',
+           'Simple garlic butter pasta tossed with parmesan and fresh herbs.',
            '1',
-           'https://i.imgur.com/Hp9Ira1.jpeg',
+           'https://www.tasteofhome.com/wp-content/uploads/2024/10/Garlic-Butter-Pasta_EXPS_TOHD24_19316_SoniaBozzo_social.jpg',
            10,
-           4,
-           E'Heat oil in a pan and cook ground beef until browned.\n'
-           E'Add taco seasoning and a splash of water and simmer for 5 minutes.\n'
-           E'Warm taco shells in the oven or on a pan.\n'
-           E'Fill shells with beef, lettuce, cheese, and salsa.\n'
-           E'Top with sour cream or avocado if desired.',
-           'Beef Tacos',
+           2,
+           E'Bring a large pot of salted water to a boil.\n
+			Cook pasta according to package directions until al dente.\n
+			While pasta cooks, melt butter in a pan over medium heat.\n
+			Add minced garlic and sautÃ© until fragrant.\n
+			Drain pasta and toss with garlic butter.\n
+			Top with parmesan cheese and fresh herbs.',
+           'Garlic Butter Pasta',
            0,
-           24
+           36 
        );
 
 --Query for filtering by a tag (in this case, VEGETARIAN)
@@ -48,14 +49,14 @@ VALUES (
 
 SELECT r.*
 FROM public.recipes AS r
-         JOIN public.recipe_tags AS rt
-              ON r.recipeid = rt.recipe_recipeid
+JOIN public.recipe_tags AS rt
+    ON r.recipeid = rt.recipe_recipeid
 WHERE rt.tags = 'VEGETARIAN';
 
 --Query for creating a comment
 --Used by the recipe detail page on our website
 
-INSERT INTO public.comments (created_at, text, user_id, recipe_id)
+INSERT INTO comments (created_at, text, user_id, recipe_id)
 VALUES (
            NOW(),
            'Spaghetti is really good!',
@@ -69,14 +70,14 @@ VALUES (
 SELECT
     u.username,
     COUNT(r.recipeid) OVER (PARTITION BY u.userid) AS total_recipes,
-        r.recipeid,
+    r.recipeid,
     r.title,
     r.description,
     r.cook_time,
     r.prep_time,
     r.servings,
     r.difficulty
-FROM public.users   AS u
-         JOIN public.recipes AS r
-              ON r.user_id = u.userid
-WHERE u.username = 'diegoL';
+FROM users AS u
+JOIN recipes AS r
+    ON r.user_id = u.userid
+WHERE u.username = 'demoUser1';
