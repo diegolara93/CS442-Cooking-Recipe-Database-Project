@@ -3,8 +3,8 @@
 
 INSERT INTO users (userid, email, password, username)
 VALUES (
-           1,
-           'demoUser2@gmail.com.com',
+           37,
+           'demoUser2@gmail.com',
            crypt('password', gen_salt('bf')),
            'demoUser2'
        );
@@ -26,21 +26,21 @@ INSERT INTO public.recipes (
     user_id
 )
 VALUES (
-           101,
-           25,
-           'A quick and delicious pasta recipe perfect for busy weeknights.',
-           'Easy',
-           'https://example.com/images/pasta.jpg',
+           20,
+           15,
+           'Crispy taco shells filled with seasoned beef, lettuce, cheese, and salsa.',
+           '1',
+           'https://i.imgur.com/Hp9Ira1.jpeg',
            10,
-           2,
-           '1. Boil pasta until al dente.
-       2. In a pan, sauté garlic in olive oil.
-       3. Add cherry tomatoes and cook until soft.
-       4. Toss cooked pasta with sauce.
-       5. Garnish with basil and parmesan.',
-           'Garlic Tomato Pasta',
+           4,
+           E'Heat oil in a pan and cook ground beef until browned.\n'
+           E'Add taco seasoning and a splash of water and simmer for 5 minutes.\n'
+           E'Warm taco shells in the oven or on a pan.\n'
+           E'Fill shells with beef, lettuce, cheese, and salsa.\n'
+           E'Top with sour cream or avocado if desired.',
+           'Beef Tacos',
            0,
-           1
+           24
        );
 
 --Query for filtering by a tag (in this case, VEGETARIAN)
@@ -52,15 +52,15 @@ FROM public.recipes AS r
               ON r.recipeid = rt.recipe_recipeid
 WHERE rt.tags = 'VEGETARIAN';
 
---Query for creating a comment (from demoUser2 (user 37), on recipe 28)
+--Query for creating a comment
 --Used by the recipe detail page on our website
 
 INSERT INTO public.comments (created_at, text, user_id, recipe_id)
 VALUES (
            NOW(),
-           'This recipe was fantastic! I loved the flavors.',
-           17,
-           5
+           'Spaghetti is really good!',
+           22,
+           19
        );
 
 --Query for displaying profile information for a user
@@ -79,9 +79,4 @@ SELECT
 FROM public.users   AS u
          JOIN public.recipes AS r
               ON r.user_id = u.userid
-WHERE u.username = 'markP';
-
-
-
-
-dw
+WHERE u.username = 'diegoL';
